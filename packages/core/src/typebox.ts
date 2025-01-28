@@ -1,5 +1,6 @@
 import { type Hook, tbValidator } from "@hono/typebox-validator";
 import type { Static, TSchema } from "@sinclair/typebox";
+import { FormatRegistry } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Env, MiddlewareHandler, ValidationTargets } from "hono";
 import convert from "./toOpenAPISchema.js";
@@ -44,7 +45,9 @@ export function validator<
   hook?: Hook<Static<T>, E, P>,
 ): MiddlewareHandler<E, P, V> {
   const middleware = tbValidator(target, schema, hook);
-
+  FormatRegistry.Set("uuid", (value) =>
+    /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value),
+  );
   return Object.assign(middleware, {
     [uniqueSymbol]: {
       resolver: async (config: OpenAPIRouteHandlerConfig) =>
